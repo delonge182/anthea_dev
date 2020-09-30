@@ -10,3 +10,5 @@ The optimization algorithm was based on Dijkstra, randomized algorithm, and cust
 This project will only available for a **limited time** and the purpose is as a **showcase** of my experience with Java and Javascript.
 This project doesn't include any required Java and Javascript library, so it **can't be built or deployed**.
 
+# Sample image:
+![alt text](https://github.com/delonge182/anthea_dev/blob/master/sample_image.png) 
