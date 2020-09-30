@@ -1,0 +1,788 @@
+/*!
+ * Ext JS Library 3.2.1
+ * Copyright(c) 2006-2010 Ext JS, Inc.
+ * licensing@extjs.com
+ * http://www.extjs.com/license
+ */
+
+
+// setup drag and drop zone
+function drageanddropzone () {
+
+	Ext.talian.REMOTING_API.enableBuffer = 0;
+   	var remotingProvider = Ext.Direct.addProvider( Ext.talian.REMOTING_API);
+   	var isReservationLoaded = false ;
+   	var isSummaryLoaded = false ;
+
+
+   	var dsReservation = new Ext.data.DirectStore( {
+	    paramsAsHash:false,
+	    root:'data',
+	    directFn: DataBean.getMbo,
+	    idProperty:'RESERVATIONID',
+	    totalProperty:'totalProperty',
+	    fields: [
+	      {name: 'RESERVATIONID' },
+	      {name: 'TRIPDATE' },
+	      {name: 'FLIGHTSESSION' },
+	      {name: 'RESTYPE' },
+	      {name: 'DISPLAYNAME' },
+	      {name: 'ORG'},
+	      {name: 'DEST'},
+	      {name: 'POV'},
+	      {name: 'PRIORITY'},
+	      {name: 'LUGGAGEWEIGHT'},
+	      {name: 'PAXWEIGHT'}
+	    ],
+	    listeners: {
+	      load: function(s, records){
+	        textStatus ("Loaded " + records.length + " records", true, false) ;
+	      }
+	    },
+	    baseParams : {
+	        start : 0,
+	        limit : 22,
+	        sort : "RESERVATIONID",
+	        mboname : "RESERVATION",
+	        where : "FLIGHTSESSION='0915'",
+	        dir : "ASC"
+	    },
+	    paramOrder: 'mboname|where|start|limit|sort|dir'
+    });
+
+
+    var PatientRecord = Ext.data.Record.create([{
+        name: 'name'
+    }, {
+        name: 'paxoff'
+    }, {
+        name: 'paxon'
+    }, {
+        name: 'loadoff'
+    }, {
+        name: 'loadon'
+    }, {
+        name: 'weight'
+    }, {
+        name: 'from'
+    }, {
+        name: 'to'
+    }, {
+    	name: 'clname'
+    }]);
+
+    var acregs = [{
+        code: 'AAAAA',
+        name: 'PK-TPE',
+        address: 'no addr',
+        telephone: '020 7188 7188',
+        fuel: 0,
+        payload: 0,
+        svctime: '00:00',
+        pathcolor: 'red',
+		startpos: 'SPG',
+		endpos: 'CPU',
+        assignment: [],
+        revassignment: [],
+        loadtext: '<tr><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td></tr>'+
+        		  '<tr><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td></tr>'+
+        		  '<tr><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td></tr>'
+    }, {
+        code: 'BBBBB',
+        name: 'PK-TPF',
+        address: 'no addr',
+        telephone: '0115 924 9924',
+        fuel: 0,
+        payload: 0,
+        svctime: '00:00',
+        pathcolor: 'green',
+		startpos: 'SPG',
+		endpos: 'CPU',
+        assignment: [],
+        revassignment: [],
+        loadtext: '<tr><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td></tr>'+
+        		  '<tr><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td></tr>'+
+        		  '<tr><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td></tr>'
+    }, {
+        code: 'CCCCC',
+        name: 'PK-TPG',
+        address: 'noaddr',
+        telephone: '020 7377 7000',
+        fuel: 0,
+        payload: 0,
+        svctime: '00:00',
+        pathcolor: 'blue',
+		startpos: 'SPG',
+		endpos: 'CPU',
+        assignment: [],
+        revassignment: [],
+        loadtext: '<tr><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td></tr>'+
+        		  '<tr><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td></tr>'+
+        		  '<tr><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td></tr>'
+    }, {
+        code: 'DDDDD',
+        name: 'PK-TPD',
+        address: 'noaddr',
+        telephone: '020 7377 7000',
+        fuel: 0,
+        payload: 0,
+        svctime: '00:00',
+        pathcolor: 'yellow',
+		startpos: 'SPG',
+		endpos: 'CPU',
+        assignment: [],
+        revassignment: [],
+        loadtext: '<tr><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td></tr>'+
+        		  '<tr><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td></tr>'+
+        		  '<tr><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td><td class="fuel-table">&nbsp</td></tr>'
+    }];
+
+    var HospitalRecord = Ext.data.Record.create([{
+        name: 'name'
+    }, {
+        name: 'fuel'
+    }, {
+        name: 'payload'
+    }, {
+        name: 'svctime'
+    }, {
+        name: 'pathcolor'
+    }, {
+        name: 'assignment'
+    }, {
+        name: 'revassignment'
+    }, {
+        name: 'startpos'
+    }, {
+        name: 'endpos'
+    }, {
+        name: 'loadtext'
+    }
+    ]);
+
+    var acregStore = new Ext.data.Store({
+        data: acregs,
+        reader: new Ext.data.JsonReader({
+            id: 'code'
+        }, HospitalRecord)
+    });
+
+    var pager = new Ext.PagingToolbar({
+        store: dsReservation,
+        displayInfo: true,
+        pageSize: 20
+      });
+
+    dsReservation.load() ;
+
+    var patientView = new Ext.grid.GridPanel( {
+	    store: dsReservation,
+	    height: 533,
+	    stripeRows: true,
+	    columns: [
+	      {
+	        header: 'Name',
+	        dataIndex: 'DISPLAYNAME',
+	        width: 60
+	      },
+	      {
+	        header: 'Org',
+	        dataIndex: 'ORG',
+	        sortable: true,
+	        width: 25
+	      },
+	      {
+	        header: 'Dest',
+	        dataIndex: 'DEST',
+	        sortable: true,
+	        width: 25
+	      },
+	      {
+	        header: 'POV',
+	        dataIndex: 'POV',
+	        sortable: true,
+	        width: 25
+	      }
+	    ],
+	    bbar:pager,
+	    viewConfig: {
+        	forceFit:true,
+        	tpl: new Ext.XTemplate( '<div class="patient-source"><table><tbody>' +
+        		                    '<tr><td class="{clname}">{name}</td><td class="patient-name">{from}</td><td class="patient-name">{to}</td><td class="patient-name">{no}</td></tr>' +
+        		                    '</tbody></table></div>' ),
+        	cls: 'patient-view',
+        	itemSelector: 'div.patient-source',
+        	overClass: 'patient-over',
+        	selectedClass: 'patient-selected',
+        	multiSelect: true
+        },
+        listeners: {
+            render: initializePatientDragZone
+        }
+	  }) ;
+
+    var hospitalGrid = new Ext.grid.GridPanel({
+        title: 'Fleet Assignment',
+        region: 'east',
+        height: 560,
+        margins: '0 2 2 0',
+        bbar: [{
+            text: 'Scenario',
+            handler: function() {
+        		Ext.winScenario.show(this);
+				var dom = Ext.get('scenarios');
+				dom.applyStyles("position:absolute;top:100px;");
+
+				var domShadow = Ext.query('.x-ie-shadow');
+				Ext.get(domShadow).applyStyles("top:100px;");
+            }
+        }, {
+        	text: 'Clear',
+        	handler: function() {
+
+        		for (var i=0; i<acregStore.data.items.length; i++) {
+        			var rec = acregStore.data.items[i] ;
+
+        			EditorBean.clearAssignment(rec.data.name);
+        			if (rec.data.assignment) {
+        				for (var j=0; j<rec.data.assignment.length; j++) {
+        					var recData = rec.data.assignment[j] ;
+
+							if (j==0 && typeof (recData.returnpath) != 'undefined') {
+								recData.returnpath.remove() ;
+							}
+
+							if (typeof (recData.overlay) != 'undefined')
+								recData.overlay.remove() ;
+
+        					recData.set ("clname","patient-label") ;
+        					recData.commit () ;
+        				}
+        			}
+
+        			rec.data.revassignment = null ;
+        			rec.data.assignment = null ;
+
+        			rec.set("fuel", 0) ;
+        			rec.set("payload", 0) ;
+        			rec.set("svctime","00:00") ;
+        			rec.set("assignment", []) ;
+        			rec.set("revassignment", []) ;
+        			rec.set("loadtext", dTable()) ;
+
+        			rec.commit () ;
+        		}
+        	}
+        }, {
+        	text: 'Configuration',
+        	handler: function() {
+        	}
+        }],
+        columns: [ {
+			dataIndex: ' ',
+            header: ' ',
+			sortable: false,
+            width: 30,
+			renderer: renderCraftButton
+		},{
+            dataIndex: 'name',
+            header: 'Reg No',
+            width: 100
+        }, {
+            dataIndex: 'startpos',
+            header: 'Start Position',
+            width: 100
+        }, {
+            dataIndex: 'endpos',
+            header: 'End Position',
+            width: 100
+        }, {
+            dataIndex: 'fuel',
+            header: 'Fuel',
+            width: 100
+        }, {
+            dataIndex: 'payload',
+            header: 'Pay Load',
+            width: 100
+        }, {
+            dataIndex: 'svctime',
+            header: 'Svc Time',
+            width: 100
+        }],
+        viewConfig: {
+            tpl: new Ext.XTemplate('<div class="hospital-target" >'+
+										'<div style="border:2px solid {pathcolor};width:384px;height:48px;margin:1px;padding:0px">' +
+											'<table><tbody><tr>' +
+											'<td width="313px">' +
+												'<div style="border:1px solid {pathcolor};width:308px;height:46px;margin:0px;padding:1px">' +
+													'<table class="heli-seating"><tbody>' +
+														'{loadtext}'+
+													'</tbody></table>' +
+												'</div>' +
+											'</td>'	+
+											'<td>' +
+												'<table><tbody><tr><td>' +
+													'<div style="border:1px solid ;width:11px;height:11px;margin:0px;padding:0px">' +
+													'1</div>' +
+												'</td></tr><tr><td>' +
+													'<div style="border:1px solid ;width:11px;height:11px;margin:0px;padding:0px">' +
+													'1</div>' +
+												'</td></tr><tr><td>' +
+													'<div style="border:1px solid ;width:11px;height:11px;margin:0px;padding:0px">' +
+													'1</div>' +
+												'</td></tr>' +
+												'</tbody></table>' +
+											'</td>' +
+											'</tr></tbody></table>' +
+										'</div>' +
+            		               '</div>'),
+            enableRowBody: true,
+            getRowClass: function(rec, idx, p, store) {
+                p.body = this.tpl.apply(rec.data);
+            }
+        },
+        store: acregStore,
+        listeners: {
+            render: initializeHospitalDropZone
+        }
+    });
+
+
+    new Ext.Viewport({
+        layout: 'border',
+        applyTo: 'data1_canvas',
+        items: [ {
+            title: 'Reservation',
+            region: 'west',
+            width: 280,
+            height: 560,
+            margins: '0 0 0 0',
+            items: patientView
+        }]
+    });
+
+    new Ext.Viewport({
+        layout: 'border',
+        applyTo: 'data2_canvas',
+        items: [ {
+        	region: 'center',
+        	width: 410,
+        	height: 560,
+        	margins: '0 0 0 0',
+            items: hospitalGrid
+        }]
+    });
+}
+
+function renderCraftButton (value, id, r) {
+	var id = Ext.id();
+	createGridButton.defer(10, this, ['', id, r]);
+    // return('&lt;div id="' + id + '"&gt;&lt;/div&gt;');
+	return('<div id="' + id + '"></div>');
+}
+
+function createGridButton(value, id, record) {
+	new Ext.Button({
+		text: value
+		,iconCls: 'tabs'
+		,handler : function(btn, e) {
+			var NOT_ASSIGNED ;
+			var assignment = record.data.assignment ;
+            var revassignment = [] ;
+            var newassignment = [] ;
+
+			Ext.example.msg('Delete Fleet Assignment', 'Deleting assignment for {0}', record.data.name) ;
+			EditorBean.clearAssignment(record.data.name);
+			for (i=0; i<assignment.length; i++) {
+				if (typeof(assignment[i].overlay) != 'undefined') {
+					assignment[i].overlay.remove() ;
+					assignment[i].overlay = NOT_ASSIGNED ;
+				}
+				assignment[i].set ("clname","patient-label") ;
+        		assignment[i].commit () ;
+			}
+			if (assignment.length>0) {
+				if (typeof(assignment[0].returnpath) != 'undefined') {
+					assignment[0].returnpath.remove() ;
+					assignment[0].returnpath = NOT_ASSIGNED ;
+				}
+			}
+			record.data.assignment = null ;
+			record.data.revassignment = null ;
+
+			record.set("fuel", 0) ;
+			record.set("payload", 0) ;
+			record.set("svctime","00:00") ;
+			record.set("assignment", []) ;
+			record.set("revassignment", []) ;
+			record.set("loadtext", generateLoadTable()) ;
+
+			record.commit () ;
+		}
+	}).render(document.body, id);
+}
+
+
+/*
+ * Here is where we "activate" the DataView.
+ * We have decided that each node with the class "patient-source" encapsulates a single draggable
+ * object.
+ *
+ * So we inject code into the DragZone which, when passed a mousedown event, interrogates
+ * the event to see if it was within an element with the class "patient-source". If so, we
+ * return non-null drag data.
+ *
+ * Returning non-null drag data indicates that the mousedown event has begun a dragging process.
+ * The data must contain a property called "ddel" which is a DOM element which provides an image
+ * of the data being dragged. The actual node clicked on is not dragged, a proxy element is dragged.
+ * We can insert any other data into the data object, and this will be used by a cooperating DropZone
+ * to perform the drop operation.
+ */
+function initializePatientDragZone(v) {
+    v.dragZone = new Ext.dd.DragZone(v.getEl(), {
+
+//      On receipt of a mousedown event, see if it is within a draggable element.
+//      Return a drag data object if so. The data object can contain arbitrary application
+//      data, but it should also contain a DOM element in the ddel property to provide
+//      a proxy to drag.
+        getDragData: function(e) {
+            var sourceEl = e.getTarget(v.itemSelector, 10);
+            if (sourceEl) {
+                d = sourceEl.cloneNode(true);
+                d.id = Ext.id();
+            	var rowIndex = v.getView().findRowIndex(sourceEl);
+                var h = v.getStore().getAt(rowIndex);
+
+                return v.dragData = {
+                    sourceEl: sourceEl,
+                    repairXY: Ext.fly(sourceEl).getXY(),
+                    ddel: d,
+                    patientData: h.data,
+                    recData: h
+                }
+            }
+        },
+
+//      Provide coordinates for the proxy to slide back to on failed drag.
+//      This is the original XY coordinates of the draggable element.
+        getRepairXY: function() {
+            return this.dragData.repairXY;
+        }
+    });
+}
+
+function generateLoadTable (assignment, loadfrombase) {
+	var tmpl = '<td class="fuel-table">{0}</td>' ;
+	var tmplspc = '<td class="fuel-table">&nbsp</td>' ;
+	var fulltext1 = '<tr>' ;
+	var fulltext2 = '<tr>' ;
+	var fulltext3 = '<tr>' ;
+	var legload = loadfrombase ;
+	var assignmentlength = -1 ;
+
+	if (typeof (assignment) != 'undefined')
+		assignmentlength = assignment.length ;
+
+	for (var i=0; i<10; i++) {
+		if (i<assignmentlength) {
+			if (i==0) {
+				fulltext1 = fulltext1 + String.format(tmpl, 'SPG') ;        // default originator
+				fulltext2 = fulltext2 + String.format(tmpl, loadfrombase) ;
+				fulltext3 = fulltext3 + String.format(tmpl, '&nbsp') ;
+			}
+			loadfrombase = loadfrombase - assignment[i].data.loadon + assignment[i].data.loadoff ;
+			fulltext1 = fulltext1 + String.format(tmpl, assignment[i].data.to) ;
+			fulltext2 = fulltext2 + String.format(tmpl, loadfrombase) ;
+			fulltext3 = fulltext3 + String.format(tmpl, '&nbsp') ;
+
+			if (i==assignment.length-1) {
+				fulltext1 = fulltext1 + String.format(tmpl, 'SPG') ;        // default destination
+				fulltext2 = fulltext2 + String.format(tmpl, 0) ;
+				fulltext3 = fulltext3 + String.format(tmpl, '&nbsp') ;
+			}
+		}
+		else {
+			fulltext1 = fulltext1 + tmplspc ;
+			fulltext2 = fulltext2 + tmplspc ;
+			fulltext3 = fulltext3 + tmplspc ;
+		}
+	}
+
+	fulltext1 = fulltext1 + '</tr>' ;
+	fulltext2 = fulltext2 + '</tr>' ;
+	fulltext3 = fulltext3 + '</tr>' ;
+
+	return fulltext1 + fulltext2 + fulltext3 ;
+}
+
+
+/*
+ * Here is where we "activate" the GridPanel.
+ * We have decided that the element with class "hospital-target" is the element which can receieve
+ * drop gestures. So we inject a method "getTargetFromEvent" into the DropZone. This is constantly called
+ * while the mouse is moving over the DropZone, and it returns the target DOM element if it detects that
+ * the mouse if over an element which can receieve drop gestures.
+ *
+ * Once the DropZone has been informed by getTargetFromEvent that it is over a target, it will then
+ * call several "onNodeXXXX" methods at various points. These include:
+ *
+ * onNodeEnter
+ * onNodeOut
+ * onNodeOver
+ * onNodeDrop
+ *
+ * We provide implementations of each of these to provide behaviour for these events.
+ */
+function initializeHospitalDropZone(g) {
+    g.dropZone = new Ext.dd.DropZone(g.getView().scroller, {
+
+//      If the mouse is over a target node, return that node. This is
+//      provided as the "target" parameter in all "onNodeXXXX" node event handling functions
+        getTargetFromEvent: function(e) {
+            return e.getTarget('.hospital-target');
+        },
+
+//      On entry into a target node, highlight that node.
+        onNodeEnter : function(target, dd, e, data){
+            Ext.fly(target).addClass('hospital-target-hover');
+        },
+
+//      On exit from a target node, unhighlight that node.
+        onNodeOut : function(target, dd, e, data){
+            Ext.fly(target).removeClass('hospital-target-hover');
+        },
+
+//      While over a target node, return the default drop allowed class which
+//      places a "tick" icon into the drag proxy.
+        onNodeOver : function(target, dd, e, data){
+            var rowIndex = g.getView().findRowIndex(target);
+            var h = g.getStore().getAt(rowIndex);
+
+            if (h.data.revassignment[data.patientData.name] >= 0)
+            	return false ;
+
+            return Ext.dd.DropZone.prototype.dropAllowed;
+        },
+
+//      On node drop, we can interrogate the target node to find the underlying
+//      application object that is the real target of the dragged data.
+//      In this case, it is a Record in the GridPanel's Store.
+//      We can use the data set up by the DragZone's getDragData method to read
+//      any data we decided to attach.
+        onNodeDrop : function(target, dd, e, data){
+            var rowIndex = g.getView().findRowIndex(target);
+            var h = g.getStore().getAt(rowIndex);
+            var targetEl = Ext.get(target);
+
+            var org = data.patientData.ORG ;
+            var dest = data.patientData.DEST ;
+            var resvid = data.patientData.RESERVATIONID ;
+
+			// check if the selected node has been visited by this aircraft
+            // if (h.data.revassignment[data.patientData.name] >= 0)
+            //	return false ;
+
+            // check if the selected node has been involved in other aircraft
+            //var h1 = null ;
+            //var involved = false ;
+            //for (var j=0; j<g.getStore().totalLength; j++) {
+            //	if (j != rowIndex) {
+            //		h1 = g.getStore().getAt(j);
+            //		if (h1.data.revassignment[data.patientData.name] >= 0) {
+            //        	involved = true ;
+            //        	break ;
+            //		}
+            //	}
+            //}
+
+            //if (involved) {
+            //	// ask audience
+            //	Ext.MessageBox.show (
+        	//		{
+        	//			title: 'Move Assignment ?',
+        	//			msg : 'You are assigning ' + data.patientData.name +' to different helicopter. <br/>Are you sure ?',
+        	//			buttons: Ext.MessageBox.YESNO,
+        	//			fn: function(btn) {
+        	//				Ext.example.msg('Assignment Modification', 'Moving {0} to {1}', data.patientData.name, h.data.name);
+        	//				if (btn == 'yes') {
+        	//					removeroute () ;
+        	//					assignroute () ;
+        	//				}
+        	//			},
+        	//			icon: Ext.MessageBox.QUESTION
+        	//		}
+            //	) ;
+            //}
+            //else
+
+            assignroute () ;
+
+
+            function calculateload (assignment) {
+            	var loadfrombase = 0 ;
+            	var loadtobase = 0 ;
+            	for (var i=0; i<assignment.length; i++) {
+            		loadfrombase = loadfrombase + assignment[i].data.weight ;
+            		loadtobase = loadtobase + assignment[i].data.weight ;
+            	}
+            	return {loadfrombase: loadfrombase, loadtobase: loadtobase} ;
+            }
+
+			// remove a port from a route
+			// port = data.patientData.name
+            function removeroute () {
+			    var NOT_ASSIGNED ;
+				var overlay ;
+				var port1 ;
+				var port2 ;
+            	var hqidx = h1.data.revassignment[data.patientData.DEST] ;
+            	var oldassignment = h1.data.assignment ;
+
+            	h1.data.revassignment = null ;
+            	h1.data.assignment = null ;
+
+            	oldassignment.splice (hqidx, 1) ;
+            	// rebuild revassignment
+            	var revassignment = [] ;
+            	var newassignment = [] ;
+	            var startport = "SPG" ;
+
+            	for (var i=0; i<oldassignment.length; i++) {
+            		revassignment[oldassignment[i].data.DEST] = i ;
+            		newassignment[i] = oldassignment[i] ;
+
+	            	if (i<h.data.assignment.length-1)
+	            		startport = oldassignment[i].data.DEST ;
+            	}
+
+            	oldassignment = null ;
+
+            	h1.data.assignment = newassignment ;
+            	h1.data.revassignment = revassignment ;
+
+            	var payload = calculateload(h1.data.assignment) ;
+            	var loadtext = generateLoadTable(h1.data.assignment, payload.loadfrombase) ;
+            	h1.set ("payload", payload.loadfrombase) ;
+            	h1.set ("loadtext", loadtext) ;
+            	h1.commit () ;
+            }
+
+            function assignroute () {
+            	// put assignment here
+
+            	var acreg = h.data.name ;
+
+            	EditorBean.assignFleetAtEnd(acreg,resvid,function(retval, e) {
+            		if (typeof (retval) != 'undefined') {
+						var result = retval['result'] ;
+						if (result)
+							Ext.example.msg('Assignment', 'Assignment return route : {0}', result) ;
+						var err = retval['err'] ;
+						if (err)
+							Ext.example.msg('Assignment', 'Assignment return error : {0}', err) ;
+						else {
+							var ischanged = retval['ischanged'] ;
+
+							if (ischanged) {
+								h.data.revassignment[dest] = h.data.assignment.length ;
+								h.data.assignment[h.data.assignment.length] = data.recData ;
+
+								data.recData.set ("clname","patient-label-assigned") ;
+
+								var startport = "SPG" ;
+					            for (var i=0; i<h.data.assignment.length; i++) {
+					            	if (i<h.data.assignment.length-1)
+					            		startport = h.data.assignment[i].data.DEST ;
+					            }
+
+					            h.data.targetEl = targetEl ;
+					            var payload = calculateload(h.data.assignment) ;
+					            var loadtext = generateLoadTable(h.data.assignment, payload.loadfrombase) ;
+					            h.set ("payload", payload.loadfrombase) ;
+					            h.set ("loadtext", loadtext) ;
+
+					            h.commit () ;
+							}
+						}
+            		}
+				}) ;
+
+            	return ;
+
+
+	            h.data.revassignment[dest] = h.data.assignment.length ;
+	            h.data.assignment[h.data.assignment.length] = data.recData ;
+
+	            data.recData.set ("clname","patient-label-assigned") ;
+
+	            var startport = "SPG" ;
+	            for (var i=0; i<h.data.assignment.length; i++) {
+	            	if (i<h.data.assignment.length-1)
+	            		startport = h.data.assignment[i].data.DEST ;
+	            }
+
+	            h.data.targetEl = targetEl ;
+	            var payload = calculateload(h.data.assignment) ;
+	            var loadtext = generateLoadTable(h.data.assignment, payload.loadfrombase) ;
+	            h.set ("payload", payload.loadfrombase) ;
+	            h.set ("loadtext", loadtext) ;
+
+	            h.commit () ;
+            }
+
+            return true;
+        }
+    });
+}
+
+
+
+Ext.onReady(function(){
+	Ext.talian.REMOTING_API.enableBuffer = 0;
+   	var remotingProvider = Ext.Direct.addProvider( Ext.talian.REMOTING_API);
+
+   	Djn.RemoteCallSupport.addCallValidation(remotingProvider);
+    Djn.RemoteCallSupport.validateCalls = true;
+
+    Ext.winScenario = new Ext.Window({
+        applyTo:'scenarios',
+        layout:'fit',
+        position:'absolute',
+		width:500,
+        height:300,
+		top:400,
+        closeAction:'hide',
+        plain: true,
+
+        items: new Ext.TabPanel({
+            applyTo: 'hello-tabs',
+            autoTabs:true,
+            activeTab:0,
+            deferredRender:false,
+            border:false
+        }),
+
+        buttons: [{
+            text:'Select',
+			handler: function(){
+					EditorBean.assignPing('PK-AAA','RESV1234',function(result, e) {
+						var s123 = result['123'] ;
+						var s180 = result['180'] ;
+						alert('result = ' + s123 + '-' +s180) ;
+					}) ;
+			}
+        },{
+            text: 'Close',
+            handler: function(){
+        		try {
+        			Ext.winScenario.hide();
+        		}
+        		catch (e) {
+        			console.log ("Error : " + e) ;
+        		}
+            }
+        }]
+    });
+
+    drageanddropzone() ;
+ });
